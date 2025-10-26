@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Lesson: Linear Momentum</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Supportive & Integrated (Warm neutrals with blue accent) -->
+    <!-- Application Structure Plan: Designed a tab-based SPA (Core Concepts, Conservation, Collisions, Angular Momentum, Practice Zone) to convert the linear slide deck into a non-linear, user-driven learning tool. Worked examples are integrated into concept tabs. A new interactive "Collision Simulator" and dynamic "Impulse Chart" are added to transform static examples into active learning experiences, directly supporting the learning objectives. This structure prioritizes discoverability and hands-on engagement over passive reading. -->
+    <!-- Visualization & Content Choices:
+        1. Report Info (Slide 6 Takeaway) -> Goal: Compare -> Viz/Method: Dynamic Bar Chart (Chart.js/Canvas) + HTML Slider -> Interaction: User slides 'time', JS recalculates 'force' to maintain constant impulse, chart updates. Justification: Makes an abstract concept interactive and visual.
+        2. Report Info (Example 4) -> Goal: Organize/Explore -> Viz/Method: HTML Form + JS Calculator ("Collision Simulator") -> Interaction: User inputs mass/velocity, JS calculates final velocity. Justification: Converts a static, solved problem into an exploratory tool (SLO 14).
+        3. Report Info (Slide 10, 12, 17 Diagrams) -> Goal: Inform -> Viz/Method: Styled HTML/CSS/Tailwind (flex/grid blocks) -> Interaction: None (static visual). Justification: Replaces slide-deck-specific image cues with web-native, SVG-free diagrams.
+        -> Confirming NO SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tab-button {
+            padding: 0.75rem 1.25rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            border-color: #3B82F6; /* blue-500 */
+            color: #3B82F6;
+            font-weight: 600;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .equation {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.25rem;
+            color: #1E3A8A; /* blue-900 */
+            margin: 1rem 0;
+            padding: 0.75rem;
+            background-color: #EFF6FF; /* blue-50 */
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+        .equation i { font-style: italic; }
+        .equation b { font-weight: bold; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .diagram-box {
+            border: 2px solid #D1D5DB; /* gray-300 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            background-color: #F9FAFB; /* gray-50 */
+        }
+        .diagram-arrow {
+            font-size: 2rem;
+            color: #3B82F6; /* blue-500 */
+        }
+    </style>
+</head>
+<body class="bg-neutral-50 text-neutral-800">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-6">
+            <h1 class="text-4xl font-bold text-blue-900">Interactive Lesson: Linear Momentum</h1>
+            <p class="mt-2 text-lg text-neutral-600">An interactive guide to momentum, impulse, and collisions.</p>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-white border-b border-neutral-200 sticky top-0 z-10">
+        <div class="container mx-auto px-4 flex flex-wrap justify-center">
+            <button class="tab-button active" onclick="showTab('concepts')">Core Concepts</button>
+            <button class="tab-button" onclick="showTab('conservation')">Conservation</button>
+            <button class="tab-button" onclick="showTab('collisions')">Collisions</button>
+            <button class="tab-button" onclick="showTab('angular')">Angular Momentum</button>
+            <button class="tab-button" onclick="showTab('simulator')">Collision Simulator</button>
+            <button class="tab-button" onclick="showTab('practice')">Practice Zone</button>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="container mx-auto px-4 py-8">
+
+        <!-- Tab 1: Core Concepts -->
+        <section id="concepts-content" class="content-section active">
+            <h2 class="text-3xl font-semibold text-blue-800 mb-4">Core Concepts: Momentum and Impulse</h2>
+            <p class="text-lg mb-6">This section covers the fundamental definitions of linear momentum and impulse, and the critical relationship that connects them through force and time.</p>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Defining Linear Momentum -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-3">1. Linear Momentum (<i>p</i>)</h3>
+                    <p class="mb-4">Momentum is a measure of the **mass in motion**. It's a vector quantity, meaning it has both magnitude and direction.</p>
+                    <div class="equation"><i><b>p</b></i> = <i>m</i> &middot; <i><b>v</b></i></div>
+                    <ul class="list-disc list-outside pl-5 space-y-2">
+                        <li><i>m</i>: mass (in kg)</li>
+                        <li><i><b>v</b></i>: velocity (in m/s)</li>
+                        <li><b>Units:</b> kg&middot;m/s</li>
+                    </ul>
+                    <hr class="my-6">
+                    <h4 class="text-xl font-semibold mb-2">Worked Example 1: Calculating Momentum</h4>
+                    <p class="mb-3">A <strong>0.15 kg</strong> baseball is thrown with a velocity of <strong>40 m/s</strong> eastward. What is its momentum?</p>
+                    <ul class="list-none space-y-2 text-sm">
+                        <li><strong>Given:</strong> <i>m</i> = 0.15 kg, <i><b>v</b></i> = 40 m/s (East)</li>
+                        <li><strong>Formula:</strong> <i><b>p</b></i> = <i>m</i> &middot; <i><b>v</b></i></li>
+                        <li><strong>Solution:</strong> <i><b>p</b></i> = (0.15 kg)(40 m/s) = 6.0 kg&middot;m/s</li>
+                        <li class="font-bold text-blue-700"><strong>Answer:</strong> 6.0 kg&middot;m/s eastward.</li>
+                    </ul>
+                </div>
+
+                <!-- Defining Impulse -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-3">2. Impulse (<i>J</i>)</h3>
+                    <p class="mb-4">Impulse is the product of the average net force and the time interval over which it acts. Impulse is what **causes** a change in momentum.</p>
+                    <div class="equation"><i><b>J</b></i> = <i><b>F</b></i><sub>avg</sub> &middot; &Delta;<i>t</i></div>
+                    <ul class="list-disc list-outside pl-5 space-y-2">
+                        <li><i><b>F</b></i><sub>avg</sub>: average net force (in Newtons, N)</li>
+                        <li>&Delta;<i>t</i>: time interval (in seconds, s)</li>
+                        <li><b>Units:</b> N&middot;s (which is identical to kg&middot;m/s)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Impulse-Momentum Theorem -->
+            <div class="bg-white p-6 rounded-lg shadow-lg mt-8">
+                <h3 class="text-2xl font-semibold mb-3">3. The Impulse-Momentum Theorem</h3>
+                <p class="mb-4">By combining Newton's Second Law with the definitions of momentum and impulse, we get the most important relationship in this chapter:</p>
+                <div class="equation"><i><b>J</b></i> = <i><b>F</b></i><sub>avg</sub> &middot; &Delta;<i>t</i> = &Delta;<i><b>p</b></i> = <i><b>p</b></i><sub>final</sub> - <i><b>p</b></i><sub>initial</sub></div>
+                <p class="text-lg font-medium text-center my-4">The impulse applied to an object equals its change in momentum.</p>
+                
+                <div class="grid md:grid-cols-2 gap-8 items-center mt-6">
+                    <div>
+                        <h4 class="text-xl font-semibold mb-2">Worked Example 2: Impulse & Force</h4>
+                        <p class="mb-3">A <strong>5.0 kg</strong> bowling ball moving at <strong>+2.0 m/s</strong> hits a cushion and bounces back at <strong>-1.5 m/s</strong>. The impact lasts <strong>0.05 s</strong>.</p>
+                        <p class="font-semibold">A: Calculate the Impulse (<i>J</i>)</p>
+                        <ul class="list-none space-y-2 text-sm mb-4">
+                            <li><i>p</i><sub>i</sub> = (5.0 kg)(+2.0 m/s) = +10.0 kg&middot;m/s</li>
+                            <li><i>p</i><sub>f</sub> = (5.0 kg)(-1.5 m/s) = -7.5 kg&middot;m/s</li>
+                            <li><i>J</i> = <i>p</i><sub>f</sub> - <i>p</i><sub>i</sub> = (-7.5) - (+10.0) = <strong>-17.5 N&middot;s</strong></li>
+                        </ul>
+                        <p class="font-semibold">B: Calculate the Average Force (<i>F</i><sub>avg</sub>)</p>
+                        <ul class="list-none space-y-2 text-sm">
+                            <li><i>F</i><sub>avg</sub> = <i>J</i> / &Delta;<i>t</i></li>
+                            <li><i>F</i><sub>avg</sub> = (-17.5 N&middot;s) / (0.05 s) = <strong>-350 N</strong></li>
+                            <li class="font-bold text-blue-700"><strong>Answer:</strong> The cushion exerted a 350 N force in the negative direction.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-semibold mb-2">Interactive: Force vs. Time</h4>
+                        <p class="text-sm mb-3">The "Key Takeaway" is that a small force over a long time can equal a large force over a short time. Both can produce the same <strong>Impulse (Change in Momentum)</strong>. Try it below.
+                        </p>
+                        <p class="text-center font-medium">Goal: Achieve an Impulse of <strong>100 N&middot;s</strong></p>
+                        <div class="chart-container">
+                            <canvas id="impulseChart"></canvas>
+                        </div>
+                        <label for="timeSlider" class="block text-sm font-medium text-gray-700 mt-2">Adjust Time Interval (&Delta;<i>t</i>): <span id="timeValue" class="font-bold text-blue-600">1.00 s</span></label>
+                        <input type="range" id="timeSlider" min="0.1" max="2.0" step="0.01" value="1.0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 2: Conservation -->
+        <section id="conservation-content" class="content-section">
+            <h2 class="text-3xl font-semibold text-blue-800 mb-4">The Law of Conservation of Momentum</h2>
+            <p class="text-lg mb-6">This section explores one of the most fundamental laws in physics: in an isolated system, the total momentum never changes. This principle explains everything from rifle recoil to rocket propulsion.</p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- The Law -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-3">1. The Law</h3>
+                    <p class="mb-4">The total linear momentum of an **isolated system** remains constant.</p>
+                    <ul class="list-disc list-outside pl-5 space-y-2 mb-4">
+                        <li>An "isolated system" means no net external forces (like friction) are acting on the objects.</li>
+                        <li>The total momentum *before* an interaction (like a collision or explosion) equals the total momentum *after*.</li>
+                    </ul>
+                    <div class="equation"><i><b>P</b></i><sub>initial</sub> = <i><b>P</b></i><sub>final</sub></div>
+                    <p class="text-center text-sm text-neutral-600">For a two-object system:</p>
+                    <div class="equation"><i>m</i><sub>1</sub><i><b>v</b></i><sub>1i</sub> + <i>m</i><sub>2</sub><i><b>v</b></i><sub>2i</sub> = <i>m</i><sub>1</sub><i><b>v</b></i><sub>1f</sub> + <i>m</i><sub>2</sub><i><b>v</b></i><sub>2f</sub></div>
+                    <p class="text-center font-medium text-red-600">Reminder: Velocity (<i><b>v</b></i>) is a vector! Use positive (+) and negative (-) signs to indicate direction.</p>
+                </div>
+                
+                <!-- Recoil Diagram -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-3">2. Example: Rifle Recoil</h3>
+                    <p class="mb-4">A rifle and a bullet form a system. Before firing, everything is at rest, so the total momentum is zero.</p>
+                    <div class="diagram-box">
+                        <h4 class="font-semibold">Initial State (<i>P</i><sub>i</sub> = 0)</h4>
+                        <div class="my-2 p-3 bg-blue-100 rounded">Rifle (<i>m</i><sub>R</sub>) + Bullet (<i>m</i><sub>B</sub>) at <i>v</i> = 0</div>
+                        <h4 class="font-semibold mt-6">Final State (<i>P</i><sub>f</sub> = 0)</h4>
+                        <div class="flex justify-between items-center mt-2">
+                            <div class="text-left">
+                                <div class="diagram-arrow">&larr;</div>
+                                <div class="p-2 bg-blue-200 rounded">Rifle Recoil<br>(-<i><b>p</b></i><sub>R</sub>)</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="diagram-arrow">&rarr;</div>
+                                <div class="p-2 bg-red-200 rounded">Bullet Fires<br>(+<i><b>p</b></i><sub>B</sub>)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mt-4">To keep the total momentum zero, the backward momentum of the rifle must perfectly cancel the forward momentum of the bullet.</p>
+                    <div class="equation">0 = <i><b>p</b></i><sub>Rifle</sub> + <i><b>p</b></i><sub>Bullet</sub> &nbsp;&rArr;&nbsp; <i><b>p</b></i><sub>Rifle</sub> = -<i><b>p</b></i><sub>Bullet</sub></div>
+                    <p class="text-center font-semibold">Their momentum magnitudes are equal!</p>
+                </div>
+            </div>
+
+            <!-- Worked Example 3 -->
+            <div class="bg-white p-6 rounded-lg shadow-lg mt-8">
+                <h3 class="text-2xl font-semibold mb-3">Worked Example 3: Inelastic Explosion/Recoil</h3>
+                <p class="mb-4">A <strong>60 kg</strong> student is at rest on frictionless ice. They push a <strong>2.0 kg</strong> medicine ball, giving it a velocity of <strong>+5.0 m/s</strong>. What is the student's recoil velocity?</p>
+                <ul class="list-none space-y-2">
+                    <li><strong>System:</strong> Student (s) + Ball (b)</li>
+                    <li><strong>Initial Momentum (<i>P</i><sub>i</sub>):</strong> <i>m</i><sub>s</sub><i>v</i><sub>si</sub> + <i>m</i><sub>b</sub><i>v</i><sub>bi</sub> = (60)(0) + (2.0)(0) = <strong>0</strong></li>
+                    <li><strong>Final Momentum (<i>P</i><sub>f</sub>):</strong> <i>m</i><sub>s</sub><i>v</i><sub>sf</sub> + <i>m</i><sub>b</sub><i>v</i><sub>bf</sub> = (60)<i>v</i><sub>sf</sub> + (2.0)(+5.0)</li>
+                    <li><strong>Conservation:</strong> <i>P</i><sub>i</sub> = <i>P</i><sub>f</sub></li>
+                    <li><strong>Solve:</strong> 0 = 60<i>v</i><sub>sf</sub> + 10.0</li>
+                    <li class="pl-4">60<i>v</i><sub>sf</sub> = -10.0</li>
+                    <li class="pl-4"><i>v</i><sub>sf</sub> = -10.0 / 60 &approx; -0.167 m/s</li>
+                    <li class="font-bold text-blue-700 text-lg mt-2"><strong>Answer:</strong> The student recoils at 0.167 m/s in the opposite direction.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Tab 3: Collisions -->
+        <section id="collisions-content" class="content-section">
+            <h2 class="text-3xl font-semibold text-blue-800 mb-4">Types of Collisions</h2>
+            <p class="text-lg mb-6">Collisions are where momentum conservation becomes most powerful. We categorize them based on whether kinetic energy (the energy of motion) is also conserved.</p>
+            
+            <!-- Collision Types Table -->
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-8">
+                <h3 class="text-2xl font-semibold mb-3">Collision Types Overview</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-max text-left">
+                        <thead class="border-b bg-neutral-100">
+                            <tr>
+                                <th class="p-3 font-semibold">Type of Collision</th>
+                                <th class="p-3 font-semibold">Momentum (<i>p</i>)</th>
+                                <th class="p-3 font-semibold">Kinetic Energy (<i>K</i>)</th>
+                                <th class="p-3 font-semibold">Defining Feature</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="p-3 font-medium text-green-700">Perfectly Elastic</td>
+                                <td class="p-3 text-green-700">Conserved</td>
+                                <td class="p-3 text-green-700">Conserved</td>
+                                <td class="p-3">Objects bounce perfectly. $K_f = K_i$.</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3 font-medium text-yellow-700">Inelastic</td>
+                                <td class="p-3 text-green-700">Conserved</td>
+                                <td class="p-3 text-red-700">NOT Conserved</td>
+                                <td class="p-3">Objects deform; energy is lost as heat/sound. $K_f < K_i$.</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-medium text-red-700">Perfectly Inelastic</td>
+                                <td class="p-3 text-green-700">Conserved</td>
+                                <td class="p-3 text-red-700">NOT Conserved</td>
+                                <td class="p-3">Objects **stick together** after collision.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Perfectly Inelastic -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-3 text-red-700">1. Perfectly Inelastic Collision</h3>
+                    <p class="mb-4">This is the easiest to solve. The objects merge and move with a **single final velocity (<i>v</i><sub>f</sub>)**.</p>
+                    <p class="text-sm text-neutral-600">The conservation equation simplifies:</p>
+                    <div class="equation"><i>m</i><sub>1</sub><i><b>v</b></i><sub>1i</sub> + <i>m</i><sub>2</sub><i><b>v</b></i><sub>2i</sub> = (<i>m</i><sub>1</sub> + <i>m</i><sub>2</sub>)<i><b>v</b></i><sub>f</sub></div>
+                    <p class="mb-4">Maximum kinetic energy is lost in this type of collision.</p>
+                    <hr class="my-6">
+                    <h4 class="text-xl font-semibold mb-2">Worked Example 4: The Sticky Collision</h4>
+                    <p class="mb-3">A <strong>1000 kg</strong> car (<i>m</i><sub>1</sub>) at <strong>20 m/s</strong> (<i>v</i><sub>1i</sub>) hits a stationary <strong>1500 kg</strong> truck (<i>m</i><sub>2</sub>). They lock bumpers.</p>
+                    <ul class="list-none space-y-2 text-sm">
+                        <li><strong>Formula:</strong> <i>m</i><sub>1</sub><i>v</i><sub>1i</sub> + <i>m</i><sub>2</sub><i>v</i><sub>2i</sub> = (<i>m</i><sub>1</sub> + <i>m</i><sub>2</sub>)<i>v</i><sub>f</sub></li>
+                        <li><strong>Solve:</strong> (1000)(20) + (1500)(0) = (1000 + 1500)<i>v</i><sub>f</sub></li>
+                        <li class="pl-4">20,000 = 2500 <i>v</i><sub>f</sub></li>
+                        <li class="pl-4"><i>v</i><sub>f</sub> = 20,000 / 2500 = 8.0 m/s</li>
+                        <li class="font-bold text-blue-700 mt-2"><strong>Answer:</strong> The wreckage moves at 8.0 m/s.</li>
+                    </ul>
+                </div>
+
+                <!-- Perfectly Elastic -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-3 text-green-700">2. Perfectly Elastic Collision</h3>
+                    <p class="mb-4">The "ideal" collision (like billiard balls). Both momentum and kinetic energy are conserved.</p>
+                    <p class="mb-4">This gives you a system of **two** equations to solve, which is more complex:</p>
+                    <p class="text-sm text-neutral-600">1. Momentum Conservation:</p>
+                    <div class="equation" style="font-size: 1rem;"><i>m</i><sub>1</sub><i><b>v</b></i><sub>1i</sub> + <i>m</i><sub>2</sub><i><b>v</b></i><sub>2i</sub> = <i>m</i><sub>1</sub><i><b>v</b></i><sub>1f</sub> + <i>m</i><sub>2</sub><i><b>v</b></i><sub>2f</sub></div>
+                    <p class="text-sm text-neutral-600">2. Kinetic Energy Conservation:</p>
+                    <div class="equation" style="font-size: 1rem;">&frac12;<i>m</i><sub>1</sub><i>v</i><sub>1i</sub><sup>2</sup> + &frac12;<i>m</i><sub>2</sub><i>v</i><sub>2i</sub><sup>2</sup> = &frac12;<i>m</i><sub>1</sub><i>v</i><sub>1f</sub><sup>2</sup> + &frac12;<i>m</i><sub>2</sub><i>v</i><sub>2f</sub><sup>2</sup></div>
+                    <p class="mt-4">You must use both equations to solve for the two unknown final velocities (<i>v</i><sub>1f</sub> and <i>v</i><sub>2f</sub>).</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Tab 4: Angular Momentum -->
+        <section id="angular-content" class="content-section">
+            <h2 class="text-3xl font-semibold text-blue-800 mb-4">Angular Momentum</h2>
+            <p class="text-lg mb-6">Momentum also applies to rotating objects. Angular momentum is the rotational equivalent of linear momentum and is also a conserved quantity.</p>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Definition -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-3">1. Defining Angular Momentum (<i>L</i>)</h3>
+                    <p class="mb-4">Angular momentum measures an object's tendency to continue rotating. For a simple point mass $m$ moving at speed $v$ in a circle of radius $r$:</p>
+                    <div class="equation"><i>L</i> = <i>mvr</i></div>
+                    <p class="text-sm text-neutral-600">The more general equation involves Moment of Inertia ($I$) and angular velocity ($\omega$):</p>
+                    <div class="equation"><i>L</i> = <i>I</i> &middot; &omega;</div>
+                </div>
+
+                <!-- Conservation -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-3">2. Conservation of Angular Momentum</h3>
+                    <p class="mb-4">Angular momentum is conserved if there is no net external **torque** (a rotational force).</p>
+                    <p class="font-semibold mb-2">Example: Ice Skater</p>
+                    <div class="diagram-box">
+                        <div class="flex justify-around items-start">
+                            <div class="w-1/2 p-2">
+                                <h4 class="font-semibold">Arms Out</h4>
+                                <div class="my-2 p-3 bg-blue-100 rounded">Large Radius (<i>r</i>)<br>Large Inertia (<i>I</i>)</div>
+                                <div class="diagram-arrow">&darr;</div>
+                                <div class="p-2 bg-blue-200 rounded">Slow Spin (&omega;)</div>
+                            </div>
+                            <div class="w-1/2 p-2">
+                                <h4 class="font-semibold">Arms In</h4>
+                                <div class="my-2 p-3 bg-red-100 rounded">Small Radius (<i>r</i>)<br>Small Inertia (<i>I</i>)</div>
+                                <div class="diagram-arrow">&darr;</div>
+                                <div class="p-2 bg-red-200 rounded">Fast Spin (&omega;)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="mt-4">By pulling her arms in, the skater decreases her inertia ($I$). To keep $L$ ($= I\omega$) constant, her angular velocity ($\omega$) must increase, and she spins faster.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 5: Collision Simulator -->
+        <section id="simulator-content" class="content-section">
+            <h2 class="text-3xl font-semibold text-blue-800 mb-4">Interactive: Perfectly Inelastic Collision Simulator</h2>
+            <p class="text-lg mb-6">Test the conservation of momentum for yourself! This simulator models a **perfectly inelastic collision** (like Worked Example 4) where two objects stick together. Set the initial masses and velocities (use negative numbers for "left" motion) and see the final velocity.</p>
+            
+            <div class="bg-white p-6 rounded-lg shadow-lg max-w-4xl mx-auto">
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <!-- Object 1 -->
+                    <div class="border p-4 rounded-lg bg-blue-50">
+                        <h3 class="text-xl font-semibold text-blue-900 mb-3">Object 1 (Blue)</h3>
+                        <div class="mb-3">
+                            <label for="m1" class="block text-sm font-medium text-gray-700">Mass (<i>m</i><sub>1</sub>) in kg:</label>
+                            <input type="number" id="m1" value="1000" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label for="v1" class="block text-sm font-medium text-gray-700">Initial Velocity (<i>v</i><sub>1i</sub>) in m/s:</label>
+                            <input type="number" id="v1" value="20" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                    </div>
+                    <!-- Object 2 -->
+                    <div class="border p-4 rounded-lg bg-red-50">
+                        <h3 class="text-xl font-semibold text-red-900 mb-3">Object 2 (Red)</h3>
+                        <div class="mb-3">
+                            <label for="m2" class="block text-sm font-medium text-gray-700">Mass (<i>m</i><sub>2</sub>) in kg:</label>
+                            <input type="number" id="m2" value="1500" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label for="v2" class="block text-sm font-medium text-gray-700">Initial Velocity (<i>v</i><sub>2i</sub>) in m/s:</label>
+                            <input type="number" id="v2" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <button id="calculateButton" class="w-full py-3 px-6 bg-blue-600 text-white font-bold text-lg rounded-lg shadow-md hover:bg-blue-700 transition-colors">
+                    Calculate Final Velocity
+                </button>
+
+                <!-- Results -->
+                <div id="results" class="mt-6 border-t pt-6">
+                    <h3 class="text-2xl font-semibold text-center mb-4">Results</h3>
+                    <p class="text-center text-lg mb-2">Initial Momentum (<i>P</i><sub>i</sub>): <strong id="pi_result" class="text-blue-700">20000.00 kg&middot;m/s</strong></p>
+                    <p class="text-center text-lg mb-4">Total Mass (<i>M</i><sub>total</sub>): <strong id="mt_result" class="text-neutral-700">2500.00 kg</strong></p>
+                    <div class="equation"><i>v</i><sub>f</sub> = <i>P</i><sub>i</sub> / <i>M</i><sub>total</sub></div>
+                    <p class="text-center text-4xl font-bold text-green-700" id="vf_result">8.00 m/s</p>
+                    <p class="text-center text-sm text-neutral-500">(Final velocity of the combined mass)</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 6: Practice Zone -->
+        <section id="practice-content" class="content-section">
+            <h2 class="text-3xl font-semibold text-blue-800 mb-4">Practice Zone</h2>
+            <p class="text-lg mb-6">Test your knowledge with these problems from the lesson.</p>
+            
+            <div class="space-y-6">
+                <!-- Problem 1 -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold mb-2">1. Conceptual Review</h3>
+                    <p class="mb-3">When you fire a bullet from a rifle, is the magnitude of the rifle's momentum larger, smaller, or the same as the bullet's momentum?</p>
+                    <details class="bg-gray-50 p-3 rounded-lg cursor-pointer">
+                        <summary class="font-semibold text-blue-600">Show Answer</summary>
+                        <p class="mt-2"><strong>Answer: The same.</strong> The total momentum of the rifle-bullet system (which was zero) must remain zero. This means the individual momenta must be equal and opposite (<var>p</var><sub>rifle</sub> = &minus;<var>p</var><sub>bullet</sub>). Their magnitudes are identical.</p>
+                    </details>
+                </div>
+
+                <!-- Problem 2 -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold mb-2">2. Impulse and Velocity Change</h3>
+                    <p class="mb-3">An average net force of <strong>50 N</strong> is applied to a <strong>0.05 kg</strong> tennis ball for <strong>0.02 s</strong>.</p>
+                    <ol class="list-decimal list-outside pl-5 mb-3">
+                        <li>Calculate the impulse (J).</li>
+                        <li>What is the change in the ball's velocity (&Delta;&ThinSpace;<var>v</var>)?</li>
+                    </ol>
+                    <details class="bg-gray-50 p-3 rounded-lg cursor-pointer">
+                        <summary class="font-semibold text-blue-600">Show Answer</summary>
+                        <p class="mt-2"><strong>1. Impulse:</strong><br> <i>J</i> = <i>F</i> &middot; &Delta;<i>t</i> = (50 N)(0.02 s) = <b>1.0 N&middot;s</b></p>
+                        <p class="mt-2"><strong>2. Velocity Change:</strong><br> &Delta;<i>p</i> = <i>J</i> = <i>m</i> &middot; &Delta;<i>v</i><br> &Delta;<i>v</i> = <i>J</i> / <i>m</i> = (1.0 N&middot;s) / (0.05 kg) = <b>20 m/s</b></p>
+                    </details>
+                </div>
+
+                <!-- Problem 3 -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold mb-2">3. Perfectly Inelastic Collision</h3>
+                    <p class="mb-3">A <strong>90 kg</strong> running back (<i>m</i><sub>1</sub>) moving at <strong>6.0 m/s</strong> (<i>v</i><sub>1i</sub>) tackles a stationary <strong>120 kg</strong> defensive lineman (<i>m</i><sub>2</sub>). If they stick together, what is their final speed?</p>
+                    <details class="bg-gray-50 p-3 rounded-lg cursor-pointer">
+                        <summary class="font-semibold text-blue-600">Show Answer</summary>
+                        <p class="mt-2"><strong>Formula:</strong> <i>m</i><sub>1</sub><i>v</i><sub>1i</sub> + <i>m</i><sub>2</sub><i>v</i><sub>2i</sub> = (<i>m</i><sub>1</sub> + <i>m</i><sub>2</sub>)<i>v</i><sub>f</sub></p>
+                        <p class="mt-2"><strong>Solution:</strong><br> (90)(6.0) + (120)(0) = (90 + 120) <i>v</i><sub>f</sub><br> 540 = (210) <i>v</i><sub>f</sub><br> <i>v</i><sub>f</sub> = 540 / 210 &approx; <b>2.57 m/s</b></p>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center py-6 mt-12 border-t border-neutral-200 bg-white">
+        <p class="text-neutral-500">An interactive lesson based on the "Linear Momentum" module.</p>
+    </footer>
+
+    <script>
+        const tabs = document.querySelectorAll('.tab-button');
+        const sections = document.querySelectorAll('.content-section');
+
+        function showTab(tabId) {
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            document.getElementById(tabId + '-content').classList.add('active');
+            event.currentTarget.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // --- Impulse Chart Logic ---
+        const ctx = document.getElementById('impulseChart').getContext('2d');
+        const timeSlider = document.getElementById('timeSlider');
+        const timeValue = document.getElementById('timeValue');
+        const CONSTANT_IMPULSE = 100;
+
+        let impulseChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Force (N)', 'Time (s)'],
+                datasets: [{
+                    label: 'Force vs. Time',
+                    data: [CONSTANT_IMPULSE / 1.0, 1.0],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.6)', // blue-500
+                        'rgba(239, 68, 68, 0.6)'  // red-500
+                    ],
+                    borderColor: [
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(239, 68, 68, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Value' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    title: {
+                        display: true,
+                        text: 'Force and Time for Impulse = 100 Ns'
+                    }
+                }
+            }
+        });
+
+        timeSlider.addEventListener('input', (e) => {
+            const time = parseFloat(e.target.value);
+            const force = CONSTANT_IMPULSE / time;
+            
+            timeValue.textContent = time.toFixed(2) + ' s';
+            impulseChart.data.datasets[0].data = [force, time];
+            impulseChart.update();
+        });
+
+        // --- Collision Simulator Logic ---
+        const m1_input = document.getElementById('m1');
+        const v1_input = document.getElementById('v1');
+        const m2_input = document.getElementById('m2');
+        const v2_input = document.getElementById('v2');
+        const calcButton = document.getElementById('calculateButton');
+        const pi_result = document.getElementById('pi_result');
+        const mt_result = document.getElementById('mt_result');
+        const vf_result = document.getElementById('vf_result');
+
+        function calculateCollision() {
+            const m1 = parseFloat(m1_input.value) || 0;
+            const v1 = parseFloat(v1_input.value) || 0;
+            const m2 = parseFloat(m2_input.value) || 0;
+            const v2 = parseFloat(v2_input.value) || 0;
+
+            const p1 = m1 * v1;
+            const p2 = m2 * v2;
+            const pi_total = p1 + p2;
+            const m_total = m1 + m2;
+            let vf_final = 0;
+
+            if (m_total !== 0) {
+                vf_final = pi_total / m_total;
+            }
+
+            pi_result.textContent = pi_total.toFixed(2) + ' kg·m/s';
+            mt_result.textContent = m_total.toFixed(2) + ' kg';
+            vf_result.textContent = vf_final.toFixed(2) + ' m/s';
+        }
+
+        calcButton.addEventListener('click', calculateCollision);
+        // Initial calculation on load
+        calculateCollision();
+        
+    </script>
+</body>
+</html>
